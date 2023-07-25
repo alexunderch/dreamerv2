@@ -25,20 +25,24 @@ RUN apt-get update -q \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ENV PATH="/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
     && mkdir /root/.conda \
     && bash Miniconda3-latest-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-latest-Linux-x86_64.sh \
-    && conda init bash \
-    . /root/.bashrc && \
-    conda update conda && \
-    conda install pip
+    && rm -f Miniconda3-latest-Linux-x86_64.sh 
+
+ENV PATH=/root/miniconda/bin:$PATH
 
 COPY . .
-RUN conda env create --file=environment.yml \
-    && conda activate dreamer \
-    && python -m pip install -e .
+
+RUN /root/miniconda/bin/conda install -y conda-build \
+    && /root//miniconda/bin/conda env create --file=environment.yml \
+    && /root//miniconda/bin/conda clean -ya
+
+ENV CONDA_DEFAULT_ENV=dreamer
+ENV CONDA_PREFIX=/root/miniconda/envs/$CONDA_DEFAULT_ENV
+ENV PATH=$CONDA_PREFIX/bin:$PATH
+ENV CONDA_AUTO_UPDATE_CONDA=false
+
+RUN python -m pip install -e .
 
 
